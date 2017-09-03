@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style>
+        canvas {
+            border: 1px solid red;
+        }
+    </style>
+
+</head>
+
+<body>
+    <canvas width="800" height="600"></canvas>
+    <script src="js/sky.js"></script>
+    <script src="js/brids.js"></script>
+    <script src="js/land.js"></script>
+    <script src="js/pipe.js"></script>
+    <script>
+        var c = document.querySelector("canvas");
+        var ctx = c.getContext("2d");
+
+        function loadImg(imgArr, callback) {
+            var index = 0;
+            var list = {};
+            for (var i = 0; i < imgArr.length; i++) {
+                var img = new Image();
+                img.src = "images/" + imgArr[i] + ".png";
+                list[imgArr[i]] = img;
+                img.onload = function() {
+                    index++;
+                    if (index == imgArr.length) {
+                        callback(list);
+                    }
+                }
+            }
+        }
+        loadImg(["birds", "land", "pipe1", "pipe2", "sky"], function(imglist) {
+            var birdsimg = imglist["birds"];
+            var skyimg = imglist["sky"];
+            var landimg = imglist["land"];
+            var pipe1img = imglist["pipe1"];
+            var pipe2img = imglist["pipe2"];
+            var sky1 = new Sky({
+                ctx: ctx,
+                img: skyimg,
+                x: 0,
+                y: 0
+            })
+            var sky2 = new Sky({
+                ctx: ctx,
+                img: skyimg,
+                x: skyimg.width,
+                y: 0
+            });
+            var birds = new Brids({
+                ctx: ctx,
+                img: birdsimg,
+                canvasx: 100,
+                canvasy: 100
+            });
+            var lands = [];
+            for (var i = 0; i < 4; i++) {
+                var land = new Land({
+                    ctx: ctx,
+                    landimg: landimg,
+                    landx: landimg.width * i,
+                    landy: c.height - landimg.height
+                });
+                lands.push(land);
+            };
+            var pipes = [];
+            for (var i = 0; i < 6; i++) {
+                var pipe = new Pipe({
+                    ctx: ctx,
+                    topimg: pipe2img,
+                    downimg: pipe1img,
+                    x: 300 + (pipe1img.width * 3 * i)
+                });
+                pipes.push(pipe);
+            }
+            var startTime = new Date(),
+                endTime = 0;
+
+            function fly() {
+                endTime = new Date();
+                /*响应的时间间隔*/
+                var offsteTime = endTime - startTime;
+                startTime = endTime;
+                ctx.clearRect(0, 0, c.width, c.height);
+                ctx.beginPath();
+                sky1.drawSky();
+                sky2.drawSky();
+                for (var i = 0; i < pipes.length; i++) {
+                    pipes[i].drawpiep();
+                }
+                for (var i = 0; i < lands.length; i++) {
+                    lands[i].drawland();
+                };
+
+                birds.drawBrids(offsteTime);
+                if (birds.canvasy < 0 || birds.canvasy > c.height - landimg.height - birdsimg.height / 3) {
+                    return;
+                };
+                if (birds.canvasy < 0 || birds.canvasy > c.height - landimg.height - birdsimg.height / 3) {
+                    return;
+                };
+                if (ctx.isPointInPath(birds.canvasx + birdsimg.width / 12, birds.canvasy + birdsimg.height / 4)) {
+                    return;
+                };
+                window.requestAnimationFrame(fly);
+            };
+            fly();
+            c.onclick = function() {
+                birds.birdSpeed = -0.2;
+            }
+
+        })
+    </script>
+</body>
+
+</html>
